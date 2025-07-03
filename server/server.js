@@ -14,7 +14,7 @@ import {
   scanAndExecuteTop5,
   saveJSON,
   placeTrade
-} from './binance-bot.js';
+} from './crypto-pilot-trade.js';
 
 dotenv.config();
 
@@ -29,11 +29,14 @@ const SIGNALS_DIR = path.join(__dirname, 'output/signals');
 const TRADES_DIR = path.join(__dirname, 'output/trades');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const MODULES_DIR = path.join(__dirname, 'node_modules');
+const capitalLogFile = path.join(__dirname, 'capital_log.json');
 
+// Create folders
 [PUBLIC_DIR, SIGNALS_DIR, TRADES_DIR].forEach(d => {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 });
 
+// Express middleware
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(PUBLIC_DIR));
@@ -43,13 +46,29 @@ app.use('/lib/chartjs-datefn', express.static(path.join(MODULES_DIR, 'chartjs-ad
 
 let wsClients = [];
 const activeTrades = {};
+let capital = 1.0;
+const TP_PERCENT = 0.25;
+const SL_PERCENT = 0.10;
 
+// Utility functions
 function nowStr() {
   return new Date().toISOString().replace(/[:.]/g, '').slice(0, 15);
 }
 
 function safe(v, fallback = 'N/A') {
   return v != null ? v : fallback;
+}
+
+function updateCapital(result) {
+  if (result === 'win') capital *= 1 + TP_PERCENT;
+  else if (result === 'loss') capital *= 1 - SL_PERCENT;
+  capital = +capital.toFixed(6);
+
+  const log = fs.existsSync(capitalLogFile)
+    ? JSON.parse(fs.readFileSync(capitalLogFile))
+    : [];
+  log.push({ capital, result, time: new Date().toISOString() });
+  fs.writeFileSync(capitalLogFile, JSON.stringify(log, null, 2));
 }
 
 function generateTradePDF(trade, outPath) {
@@ -90,7 +109,11 @@ async function runSignalScript(isManual = false, res = null) {
 
     wsClients.forEach(c => {
       if (c.readyState === WebSocket.OPEN) {
-        c.send(JSON.stringify({ type: 'signal_refresh', count: all.length }));
+        c.send(JSON.stringify({
+          type: 'signal_refresh',
+          count: all.length,
+          capital
+        }));
       }
     });
 
@@ -198,7 +221,18 @@ app.get('/api/trades', (req, res) => {
   }
 });
 
-// === Monitor & Auto-Close ===
+app.get('/api/capital-log', (req, res) => {
+  try {
+    const log = fs.existsSync(capitalLogFile)
+      ? JSON.parse(fs.readFileSync(capitalLogFile))
+      : [];
+    res.json({ capital, history: log });
+  } catch {
+    res.status(500).json({ error: 'capital log error' });
+  }
+});
+
+// === Auto-Trade Monitor ===
 setInterval(async () => {
   for (const id in activeTrades) {
     const tr = activeTrades[id];
@@ -212,6 +246,10 @@ setInterval(async () => {
         tr.exit = cur;
         tr.closed_at = new Date().toISOString();
         tr.pnl = (((cur - ent) / ent) * tr.leverage * tr.size).toFixed(2);
+
+        if (cur >= tp) updateCapital('win');
+        else if (cur <= sl) updateCapital('loss');
+
         tr.log += `Auto-closed @ ${cur} | PnL = ${tr.pnl}\n`;
         fs.writeFileSync(tr.jsonPath, JSON.stringify(tr, null, 2));
         generateTradePDF(tr, tr.pdfPath);
@@ -234,9 +272,9 @@ wss.on('connection', ws => {
 // === Start Express Server ===
 app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
 app.listen(PORT, () => console.log(`📡 HTTP API @ http://localhost:${PORT}`));
-console.log(`🔌 WS API  @ ws://localhost:${WS_PORT}`);
+console.log(`🔌 WS API  @ ws://localhost:${WS_PORT}`));
 
-// === Initial & Cron Run ===
+// === Initial Run & Scheduler ===
 runSignalScript();
 cron.schedule('0 */4 * * *', () => {
   console.log('⏱️ Running Scheduled Signal + Trade Execution...');
