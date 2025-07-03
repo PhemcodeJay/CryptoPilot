@@ -1,7 +1,6 @@
 import fs from 'fs';
 import axios from 'axios';
 import BinanceConnector from '@binance/connector';
-const { SpotClient, FuturesClient } = BinanceConnector;
 import PDFDocument from 'pdfkit';
 
 
@@ -9,7 +8,12 @@ import PDFDocument from 'pdfkit';
 // === CONFIG ===
 const API_KEY = 'your_api_key';
 const API_SECRET = 'your_api_secret';
-const futures = new FuturesClient(API_KEY, API_SECRET);
+const { Spot, Futures } = BinanceConnector;
+const futures = new Futures({
+  apiKey: API_KEY,
+  apiSecret: API_SECRET
+});
+
 
 let capital = 1; // Starting capital
 const risk_pct = 0.01;
@@ -203,6 +207,8 @@ async function analyze(symbol) {
   return sigs;
 }
 
+
+
 // === TRADE EXECUTION ===
 async function placeTrade(signal) {
   if (SIMULATION) {
@@ -262,8 +268,25 @@ async function checkTradeResult(signal) {
   }
 }
 
+async function scanAndGenerateSignals() {
+  ensureDir(SIGNAL_FOLDER);
+  const allSignals = [];
+
+  const symbols = await getSymbols();
+  for (const symbol of symbols) {
+    const sigs = await analyze(symbol);
+    for (const s of sigs) {
+      saveJSON(s, SIGNAL_FOLDER, s.symbol);
+      allSignals.push(s);
+    }
+  }
+
+  savePDF(allSignals, SIGNAL_PDF, 'All Signals');
+}
+
+
 // === MAIN ===
-(async () => {
+async function scanAndExecuteTop5() {
   ensureDir(SIGNAL_FOLDER);
   ensureDir(TRADE_FOLDER);
   const allSignals = [];
@@ -293,7 +316,8 @@ async function checkTradeResult(signal) {
 
   savePDF(allSignals, SIGNAL_PDF, 'All Signals');
   savePDF(opened, TRADE_PDF, 'Opened Trades');
-})();
+}
+
 
 export {
   placeTrade,
@@ -303,4 +327,7 @@ export {
   SIGNAL_PDF,
   TRADE_PDF,
   savePDF,
+  saveJSON,
+  scanAndExecuteTop5,
+  scanAndGenerateSignals, 
 };
