@@ -6,6 +6,10 @@ import PDFDocument from 'pdfkit';
 
 
 // === CONFIG ===
+const API_KEY = 'your_api_key';     // <-- define before use
+const API_SECRET = 'your_api_secret';
+
+
 const { Futures } = BinanceConnector;
 const futures = new Futures({
   apiKey: API_KEY,
