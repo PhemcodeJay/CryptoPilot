@@ -1,0 +1,20 @@
+{
+  "name": "cryptopilot-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "binance-api-node": "^0.12.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.0",
+    "express": "^4.18.2",
+    "node-cron": "^4.1.1",
+    "pdfkit": "^0.17.1",
+    "technicalindicators": "^3.1.0",
+    "ws": "^8.18.2"
+  }
+}
