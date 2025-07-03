@@ -272,7 +272,7 @@ wss.on('connection', ws => {
 // === Start Express Server ===
 app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
 app.listen(PORT, () => console.log(`📡 HTTP API @ http://localhost:${PORT}`));
-console.log(`🔌 WS API  @ ws://localhost:${WS_PORT}`));
+console.log(`🔌 WS API  @ ws://localhost:${WS_PORT}`);
 
 // === Initial Run & Scheduler ===
 runSignalScript();

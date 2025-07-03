@@ -1,114 +1,207 @@
-Here's your full **📘 `README.md` installation and usage guide** for running the hybrid trading bot:
+Here is a comprehensive `README.md` file for your **CryptoPilot** project, designed to walk users or collaborators through setup, usage, and structure:
 
 ---
 
-# 📈 Hybrid Binance Futures Trading Bot
+### 📘 `README.md`
 
-This bot scans the top 200 Binance USDT Futures symbols, generates trading signals with charts and indicator overlays, places trades for the top 5 signals, and creates a detailed PDF report.
+```md
+# 🚀 CryptoPilot — 1 USDT to 1M via Smart Signal-Based Trading
 
----
+CryptoPilot is a fully automated crypto futures trading system using Binance API, technical signal analysis, and capital compounding. It includes:
 
-## ✅ Features
-
-* ✅ Scans 200 Binance USDT perpetual symbols
-* ✅ Generates TA-based signals (EMA, MACD, RSI, BB)
-* ✅ Saves per-symbol `.json` signal files
-* ✅ Saves indicator chart `.png` per symbol
-* ✅ Automatically places top 5 trades using 1 USDT risk
-* ✅ Saves a full `signals_report_<timestamp>.pdf` for all signals
-
----
-
-## 🧰 Prerequisites
-
-1. **Install Python 3.10+**
-   Recommended: [https://www.python.org/downloads/](https://www.python.org/downloads/)
-
-2. **Install Required Libraries**
-   Open **CMD** or **Terminal** and run:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-   If no `requirements.txt`, install manually:
-
-   ```bash
-   pip install pandas numpy matplotlib ta python-binance fpdf python-dotenv
-   ```
+- 🔍 Signal scanning using EMA, RSI, trend regimes
+- 🤖 Auto-trading top signals with SL/TP logic
+- 📈 Capital compounding from 1 USDT → 1M target
+- 🧠 Backtesting-ready structure
+- 📊 Vite-powered dashboard with live charting and logs
+- 📁 PDF reports for every trade
+- 🔄 Cron jobs for scheduled trades
+- 📡 Real-time updates via WebSocket
 
 ---
 
-## 📁 Directory Structure
+## 🛠 Features
 
-```text
-hybrid_bot/
-├── bot1.py                     # Main script
-├── .env                        # API credentials and mode
+- ✅ Binance Futures integration (via `@binance/connector`)
+- ✅ 1H time frame analysis with RSI, EMA9/EMA21, SMA20/50
+- ✅ Strategy scoring + regime-based classification
+- ✅ Auto execution with proper leverage + risk sizing
+- ✅ Capital compounding & trade history tracking
+- ✅ Trade PDF generation (`pdfkit`)
+- ✅ RESTful API & WebSocket server
+- ✅ Cron-based signal/trade automation
+- ✅ Vite-compatible frontend dashboard
+
+---
+
+## 📂 Project Structure
+
+```
+
+crypto-pilot/
+├── crypto-pilot-trade.js      # Signal scanner + trade executor
+├── server.js                  # Express API + WebSocket + cron manager
+├── public/                    # Vite dashboard frontend (served by Express)
 ├── output/
-│   ├── charts/                 # Symbol charts (e.g. BTCUSDT.png)
-│   ├── reports/                # Combined PDF report
-│   ├── signals/                # Symbol signals (e.g. ETHUSDT.json)
-│   └── trades/                 # Executed trade logs
+│   ├── signals/               # JSON signals by symbol
+│   ├── trades/                # Trade JSON + PDF reports
+│   └── capital\_log.json       # Capital compounding log
+├── .env                       # Binance API keys
+├── package.json
+└── README.md
+
+````
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/yourusername/crypto-pilot
+cd crypto-pilot
+````
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Add your Binance API credentials
+
+Create a `.env` file:
+
+```env
+API_KEY=your_binance_key
+API_SECRET=your_binance_secret
+PORT=5000
+WS_PORT=5001
+```
+
+### 4. Run the server
+
+```bash
+node server.js
+```
+
+### 5. Visit Dashboard
+
+Open in your browser:
+
+```
+http://localhost:5000/
 ```
 
 ---
 
-## 🔐 .env File Setup
+## 📡 API Endpoints
 
-Create a file named `.env` in the project folder with:
+### Signals
 
-```ini
-MODE=live
-BINANCE_API_KEY=your_api_key
-BINANCE_API_SECRET=your_api_secret
+* `GET /api/signals` — Scan and generate trading signals
+* `GET /api/symbols` — List all available signal symbols
+* `GET /api/signal/:symbol?tf=1h` — Get signal + chart data for symbol
+
+### Trading
+
+* `GET /api/autotrade` — Scan & auto-execute top 5 signals
+* `POST /api/trade` — Manually place a trade (see payload below)
+* `GET /api/trades` — List all trades (active + closed)
+
+**POST /api/trade payload**
+
+```json
+{
+  "symbol": "BTCUSDT",
+  "side": "BUY",
+  "entry": 63000,
+  "stop_loss": 62000,
+  "take_profit": 65000,
+  "leverage": 20,
+  "size": 1.0
+}
 ```
 
-> 🧪 To backtest only without placing trades, remove or leave `BINANCE_API_KEY` and `API_SECRET` blank.
+### Capital Tracking
+
+* `GET /api/capital-log` — View capital growth and trade results history
 
 ---
 
-## ▶️ Running the Bot
+## 📈 Capital Compounding Logic
 
-1. Open CMD and navigate to the bot folder:
+Each successful trade grows capital by `+25%`, losses reduce by `-10%`.
 
-   ```
-   cd path\to\hybrid_bot
-   ```
-
-2. Run the bot:
-
-   ```
-   python bot1.py
-   ```
+Initial capital: `1.00 USDT`
+Goal: `1,000,000+ USDT`
+Capital is logged in `output/capital_log.json` and broadcast to WebSocket clients.
 
 ---
 
-## 📤 Outputs
+## 🔄 Automation
 
-After running, the bot will generate:
+Auto-trade runs every 4 hours (cron):
 
-* **Top 5 trades executed** (if API is present)
-* `output/signals/*.json`: One JSON file per symbol with signal info
-* `output/charts/*.png`: One chart image per symbol
-* `output/reports/signals_report_<timestamp>.pdf`: All signals visualized
-* `output/trades/*.json`: Trade logs for each executed position
+```js
+cron.schedule('0 */4 * * *', () => {
+  scanAndExecuteTop5();
+});
+```
 
----
-
-## ⚠️ Notes & Tips
-
-* If you're seeing GUI-related Matplotlib errors, it's because `matplotlib` tries to use a display in a background thread. This is fixed by:
-
-  ```python
-  import matplotlib
-  matplotlib.use('Agg')  # Already added in your script
-  ```
-
-* Make sure `bot1.py` is not blocked by antivirus or firewall when using live API keys.
-
-* To avoid rate limits, don't rerun too quickly.
+You can change the interval in `server.js`.
 
 ---
 
+## 🧪 Backtesting Support
+
+Signals and trades are stored as `.json` in `output/`. You can use them to test:
+
+* Signal quality
+* Strategy robustness
+* Trade win/loss ratio
+* Capital growth curve
+
+---
+
+## 🧰 Built With
+
+* [Express](https://expressjs.com/)
+* [Binance Connector](https://github.com/binance/binance-connector-node)
+* [Technical Indicators](https://www.npmjs.com/package/technicalindicators)
+* [PDFKit](https://github.com/foliojs/pdfkit)
+* [Node-cron](https://www.npmjs.com/package/node-cron)
+* [Vite](https://vitejs.dev/) (for frontend)
+* [Chart.js](https://www.chartjs.org/)
+
+---
+
+## 🔐 Security Notes
+
+* Make sure to **secure your `.env` file** (add it to `.gitignore`)
+* Consider using IP filtering, authentication or request signing for trade endpoints
+
+---
+
+## 📊 Roadmap Ideas
+
+* [ ] Add chart view for `/api/capital-log` in Vite dashboard
+* [ ] Backtest engine from signal + trade history
+* [ ] SQLite or MongoDB integration for better persistence
+* [ ] Risk configuration per trade (via UI)
+
+---
+
+## 👨‍💻 Developer
+
+**OL'PHEMIE JEGEDE**
+PHP & MySQL Developer | JS Full-stack | Crypto Strategist
+\[Your GitHub] • \[Your Twitter] • \[Your Email]
+
+---
+
+## 📜 License
+
+MIT — Free to use, modify and distribute.
 
