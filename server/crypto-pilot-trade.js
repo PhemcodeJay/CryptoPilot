@@ -16,11 +16,12 @@ const TP_PERCENT = 0.25;
 const SL_PERCENT = 0.10;
 const SIMULATION = false;
 
-const SIGNAL_FOLDER = './signals';
-const TRADE_FOLDER = './trades';
-const SIGNAL_PDF = 'all_signals.pdf';
-const TRADE_PDF = 'opened_trades.pdf';
-const LOG_FILE = './capital_log.json';
+const SIGNAL_FOLDER = './output/signals';
+const TRADE_FOLDER = './output/trades';
+const SIGNAL_PDF = './output/signals/all_signals.pdf';
+const TRADE_PDF = './output/trades/opened_trades.pdf';
+const LOG_FILE = './output/trades/capital_log.json';
+
 
 // === UTILS ===
 function ensureDir(dir) {

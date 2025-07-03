@@ -29,7 +29,18 @@ const SIGNALS_DIR = path.join(__dirname, 'output/signals');
 const TRADES_DIR = path.join(__dirname, 'output/trades');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const MODULES_DIR = path.join(__dirname, 'node_modules');
-const capitalLogFile = path.join(__dirname, 'capital_log.json');
+const capitalLogFile = path.join(__dirname, 'output/trades/capital_log.json');
+
+const DIST_DIR = path.join(__dirname, 'client', 'dist');
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(DIST_DIR));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(DIST_DIR, 'index.html'));
+  });
+}
+
 
 // Create folders
 [PUBLIC_DIR, SIGNALS_DIR, TRADES_DIR].forEach(d => {
@@ -270,7 +281,12 @@ wss.on('connection', ws => {
 });
 
 // === Start Express Server ===
-app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
+if (process.env.NODE_ENV === 'production') {
+  const DIST_DIR = path.join(__dirname, 'client', 'dist');
+  app.use(express.static(DIST_DIR));
+  app.get('*', (req, res) => res.sendFile(path.join(DIST_DIR, 'index.html')));
+}
+
 app.listen(PORT, () => console.log(`📡 HTTP API @ http://localhost:${PORT}`));
 console.log(`🔌 WS API  @ ws://localhost:${WS_PORT}`);
 
