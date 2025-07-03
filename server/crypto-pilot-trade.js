@@ -1,6 +1,7 @@
 import fs from 'fs';
 import axios from 'axios';
-import { SpotClient, FuturesClient } from '@binance/connector';
+import BinanceConnector from '@binance/connector';
+const { SpotClient, FuturesClient } = BinanceConnector;
 import PDFDocument from 'pdfkit';
 
 
@@ -293,3 +294,13 @@ async function checkTradeResult(signal) {
   savePDF(allSignals, SIGNAL_PDF, 'All Signals');
   savePDF(opened, TRADE_PDF, 'Opened Trades');
 })();
+
+export {
+  placeTrade,
+  checkTradeResult,
+  updateCapital,
+  getSymbols,
+  SIGNAL_PDF,
+  TRADE_PDF,
+  savePDF,
+};
