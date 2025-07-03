@@ -1,10 +1,4 @@
-Here is a comprehensive `README.md` file for your **CryptoPilot** project, designed to walk users or collaborators through setup, usage, and structure:
 
----
-
-### 📘 `README.md`
-
-```md
 # 🚀 CryptoPilot — 1 USDT to 1M via Smart Signal-Based Trading
 
 CryptoPilot is a fully automated crypto futures trading system using Binance API, technical signal analysis, and capital compounding. It includes:
