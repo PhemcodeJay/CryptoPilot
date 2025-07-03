@@ -1,7 +1,8 @@
 import fs from 'fs';
 import axios from 'axios';
 import { SpotClient, FuturesClient } from '@binance/connector';
-import { FPDF } from 'fpdf-lite';
+import PDFDocument from 'pdfkit';
+
 
 
 // === CONFIG ===
@@ -68,21 +69,26 @@ function formatSignal(s, i) {
 
 function savePDF(signals, fileName, title) {
   if (!signals.length) return;
-  const pdf = new FPDF();
-  pdf.AddPage();
-  pdf.SetFont('Courier', '', 10);
-  pdf.Text(10, 10, title);
-  let y = 20;
+
+  const doc = new PDFDocument({ margin: 30 });
+  const stream = fs.createWriteStream(fileName);
+  doc.pipe(stream);
+
+  doc.font('Courier').fontSize(10).text(title, { align: 'left' });
+  doc.moveDown();
+
   signals.forEach((s, i) => {
     const lines = formatSignal(s, i + 1).split('\n');
     lines.forEach(line => {
-      pdf.Text(10, y, line);
-      y += 5;
+      doc.text(line);
     });
-    y += 5;
+    doc.moveDown();
   });
-  pdf.Output('F', fileName);
-  console.log(`📄 PDF saved: ${fileName}`);
+
+  doc.end();
+  stream.on('finish', () => {
+    console.log(`📄 PDF saved: ${fileName}`);
+  });
 }
 
 // === INDICATORS ===

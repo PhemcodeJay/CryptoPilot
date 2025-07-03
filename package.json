@@ -19,5 +19,9 @@
     "tailwindcss": "^4.1.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@binance/connector": "^3.6.1",
+    "pdfkit": "^0.17.1"
   }
 }
