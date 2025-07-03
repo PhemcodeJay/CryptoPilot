@@ -12,8 +12,8 @@ const API_SECRET = 'your_api_secret';
 
 const { UMFutures } = BinanceConnector;
 const futures = new UMFutures({
-  apiKey: API_KEY,
-  apiSecret: API_SECRET
+  key: API_KEY,
+  secret: API_SECRET
 });
 
 
